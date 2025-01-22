@@ -35,7 +35,7 @@
         <connection>https://github.com/kouleen/minecraft-parent</connection>
         <developerConnection>scm:git:https://github.com/kouleen/minecraft-parent</developerConnection>
         <url>https://github.com/kouleen/minecraft-parent</url>
-        <tag>-release-v1.0.0 </tag>
+        <tag>release </tag>
     </scm>
 
     <properties>
