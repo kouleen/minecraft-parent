@@ -1,21 +1,33 @@
 package io.github.kouleen.minecraft.core.utils;
 
-import io.github.kouleen.minecraft.core.lang.Nullable;
-
 import java.util.Collection;
 import java.util.Map;
 
 /**
  * @author zhangqing
- * @since 2025/1/22 16:12
+ * @since 2023/2/8 18:00
  */
-public final class CollectionUtils {
+public abstract class CollectionUtils {
 
-    public static boolean isEmpty(@Nullable Collection<?> collection) {
+    /**
+     * Return {@code true} if the supplied Collection is {@code null} or empty.
+     * Otherwise, return {@code false}.
+     *
+     * @param collection the Collection to check
+     * @return whether the given Collection is empty
+     */
+    public static boolean isEmpty(Collection<?> collection) {
         return (collection == null || collection.isEmpty());
     }
 
-    public static boolean isEmpty(@Nullable Map<?, ?> map) {
+    /**
+     * Return {@code true} if the supplied Map is {@code null} or empty.
+     * Otherwise, return {@code false}.
+     *
+     * @param map the Map to check
+     * @return whether the given Map is empty
+     */
+    public static boolean isEmpty(Map<?, ?> map) {
         return (map == null || map.isEmpty());
     }
 }

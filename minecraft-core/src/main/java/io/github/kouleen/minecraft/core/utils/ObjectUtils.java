@@ -1,7 +1,5 @@
 package io.github.kouleen.minecraft.core.utils;
 
-import io.github.kouleen.minecraft.core.lang.Nullable;
-
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
@@ -9,11 +7,56 @@ import java.util.Optional;
 
 /**
  * @author zhangqing
- * @since 2025/1/22 16:05
+ * @since 2023/2/8 17:57
  */
-public final class ObjectUtils {
+public abstract class ObjectUtils {
 
-    public static boolean isEmpty(@Nullable Object obj) {
+    /**
+     * Determine whether the given object is an array:
+     * either an Object array or a primitive array.
+     *
+     * @param obj the object to check
+     * @return boolean
+     */
+    public static boolean isArray(Object obj) {
+        return (obj != null && obj.getClass().isArray());
+    }
+
+    /**
+     * Determine whether the given array is empty:
+     * i.e. {@code null} or of zero length.
+     *
+     * @param array the array to check
+     * @see #isEmpty(Object)
+     * @return boolean
+     */
+    public static boolean isEmpty(Object[] array) {
+        return (array == null || array.length == 0);
+    }
+
+    /**
+     * Determine whether the given object is empty.
+     * <p>This method supports the following object types.
+     * <ul>
+     * <li>{@code Optional}: considered empty if {@link Optional#empty()}</li>
+     * <li>{@code Array}: considered empty if its length is zero</li>
+     * <li>{@link CharSequence}: considered empty if its length is zero</li>
+     * <li>{@link Collection}: delegates to {@link Collection#isEmpty()}</li>
+     * <li>{@link Map}: delegates to {@link Map#isEmpty()}</li>
+     * </ul>
+     * <p>If the given object is non-null and not one of the aforementioned
+     * supported types, this method returns {@code false}.
+     *
+     * @param obj the object to check
+     * @return {@code true} if the object is {@code null} or <em>empty</em>
+     * @see Optional#isPresent()
+     * @see ObjectUtils#isEmpty(Object[])
+     * @see StringUtils#hasLength(CharSequence)
+     * @see CollectionUtils#isEmpty(Collection)
+     * @see CollectionUtils#isEmpty(Map)
+     * @since 4.2
+     */
+    public static boolean isEmpty(Object obj) {
         if (obj == null) {
             return true;
         }
@@ -34,6 +77,7 @@ public final class ObjectUtils {
             return ((Map<?, ?>) obj).isEmpty();
         }
 
+        // else
         return false;
     }
 }

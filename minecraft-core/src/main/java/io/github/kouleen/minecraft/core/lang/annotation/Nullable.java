@@ -1,4 +1,4 @@
-package io.github.kouleen.minecraft.core.lang;
+package io.github.kouleen.minecraft.core.lang.annotation;
 
 import java.lang.annotation.*;
 
