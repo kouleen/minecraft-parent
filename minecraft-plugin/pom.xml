@@ -6,7 +6,7 @@
     <parent>
         <groupId>io.github.kouleen.minecraft</groupId>
         <artifactId>minecraft-parent</artifactId>
-        <version>1.0.4</version>
+        <version>1.0.5</version>
     </parent>
 
     <groupId>io.github.kouleen.minecraft.plugin</groupId>
@@ -23,6 +23,10 @@
             <groupId>io.github.kouleen.minecraft.core</groupId>
             <artifactId>minecraft-core</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
         </dependency>
     </dependencies>
 

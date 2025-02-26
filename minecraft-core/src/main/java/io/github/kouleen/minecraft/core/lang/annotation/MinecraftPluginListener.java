@@ -4,10 +4,12 @@ import java.lang.annotation.*;
 
 /**
  * @author zhangqing
- * @since 2025/2/10 19:11
+ * @since 2025/2/26 13:44
  */
 @Documented
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AutoInject {
+@MinecraftPluginComponent
+public @interface MinecraftPluginListener {
+
 }

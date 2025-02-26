@@ -4,11 +4,12 @@ import java.lang.annotation.*;
 
 /**
  * @author zhangqing
- * @since 2025/2/10 19:11
+ * @since 2025/2/26 13:41
  */
 @Documented
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Component {
-}
+@MinecraftPluginComponent
+public @interface MinecraftPluginCommand {
 
+}

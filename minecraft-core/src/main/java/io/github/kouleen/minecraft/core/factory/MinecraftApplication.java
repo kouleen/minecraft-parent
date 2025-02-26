@@ -1,9 +1,7 @@
 package io.github.kouleen.minecraft.core.factory;
 
 import io.github.kouleen.minecraft.core.exception.ClassLoaderException;
-import io.github.kouleen.minecraft.core.lang.annotation.AutoInject;
-import io.github.kouleen.minecraft.core.lang.annotation.Component;
-import io.github.kouleen.minecraft.core.lang.annotation.MinecraftPluginMain;
+import io.github.kouleen.minecraft.core.lang.annotation.*;
 import io.github.kouleen.minecraft.core.utils.AssertUtils;
 import io.github.kouleen.minecraft.core.utils.CollectionUtils;
 import io.github.kouleen.minecraft.core.utils.ObjectUtils;
@@ -17,10 +15,7 @@ import java.lang.reflect.Field;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -30,27 +25,42 @@ import java.util.jar.JarFile;
  */
 public class MinecraftApplication {
 
-    private final ClassLoader[] classLoader;
+    private static Map<String,List<String>> packageMap = new HashMap<>();
+
+    private static ClassLoader[] classLoader;
 
     private static final SingletonFactory singletonFactory = new DefaultSingletonFactory();
 
-    public MinecraftApplication(ClassLoader[] classLoader) {
-        this.classLoader = classLoader;
+    private MinecraftApplication() {
     }
 
     public static MinecraftApplication run(Object object, ClassLoader... classLoader) {
         singletonFactory.setSingleton(object.getClass().getName(), object);
-        return new MinecraftApplication(ObjectUtils.isEmpty(classLoader) ? new ClassLoader[]{Thread.currentThread().getContextClassLoader()} : classLoader).runMain(object.getClass());
-    }
-
-    public static MinecraftApplication run(Class<?> primarySources, ClassLoader... classLoader) {
-        return new MinecraftApplication(classLoader).runMain(primarySources);
+        MinecraftApplication.classLoader = ObjectUtils.isEmpty(classLoader) ? new ClassLoader[]{Thread.currentThread().getContextClassLoader()} : classLoader;
+        return new MinecraftApplication().runMain(object.getClass());
     }
 
     public MinecraftApplication runMain(Class<?> primarySources) {
-        MinecraftApplication breadLibApplication = new MinecraftApplication(new ClassLoader[]{primarySources.getClassLoader()});
+        List<String> packageList = MinecraftApplication.getPackageList(primarySources);
+        for (String packageName : packageList) {
+            List<Class<?>> aClass = MinecraftApplication.getClassList(packageName);
+            for (Class<?> clazz : aClass) {
+                this.componentInstance(clazz);
+            }
+            for (Class<?> clazz : aClass) {
+                this.autoInjectField(clazz);
+            }
+        }
+        return this;
+    }
+
+    public static List<String> getPackageList(Class<?> primarySources){
         AssertUtils.notNull(primarySources, "PrimarySources must not be null");
         MinecraftPluginMain annotation = primarySources.getAnnotation(MinecraftPluginMain.class);
+        String clazzName = primarySources.getName();
+        if(packageMap.containsKey(clazzName)){
+            return packageMap.get(clazzName);
+        }
         List<String> packageList = new ArrayList<>();
         String[] packages = annotation.packages();
         if (!ObjectUtils.isEmpty(packages)) {
@@ -63,18 +73,11 @@ public class MinecraftApplication {
         if (CollectionUtils.isEmpty(packageList)) {
             packageList.add(primarySources.getPackage().getName());
         }
-
-        for (String packageName : packageList) {
-            List<Class<?>> aClass = getClass(packageName);
-            for (Class<?> clazz : aClass) {
-                this.componentInstance(clazz);
-            }
-            this.autoInjectField(aClass);
-        }
-        return breadLibApplication;
+        packageMap.put(clazzName,packageList);
+        return packageList;
     }
 
-    public List<Class<?>> getClass(String packageName) {
+    public static List<Class<?>> getClassList(String packageName) {
         // 第一个class类的集合
         List<Class<?>> classes = new ArrayList<>();
         // 是否循环迭代
@@ -150,7 +153,7 @@ public class MinecraftApplication {
         return classes;
     }
 
-    private void findAndAddClassesInPackageByFile(String packageName, String packagePath, boolean recursive, List<Class<?>> classes) {
+    private static void findAndAddClassesInPackageByFile(String packageName, String packagePath, boolean recursive, List<Class<?>> classes) {
         // 获取此包的目录 建立一个File
         File dir = new File(packagePath);
         // 如果不存在或者 也不是目录就直接返回
@@ -184,59 +187,65 @@ public class MinecraftApplication {
         }
     }
 
-    public Object componentInstance(Class<?> clazz) {
-        Object object = null;
+    private void componentInstance(Class<?> clazz) {
         try {
-            Component component = clazz.getAnnotation(Component.class);
+            MinecraftPluginCommand componentCommand = clazz.getAnnotation(MinecraftPluginCommand.class);
+            MinecraftPluginListener componentListener = clazz.getAnnotation(MinecraftPluginListener.class);
+            MinecraftPluginComponent component = clazz.getAnnotation(MinecraftPluginComponent.class);
             MinecraftPluginMain componentMain = clazz.getAnnotation(MinecraftPluginMain.class);
-            if (!ObjectUtils.isEmpty(component) || !ObjectUtils.isEmpty(componentMain)) {
+            if (!ObjectUtils.isEmpty(component) || !ObjectUtils.isEmpty(componentMain)
+                    || !ObjectUtils.isEmpty(componentCommand) || !ObjectUtils.isEmpty(componentListener)) {
                 String className = clazz.getName();
                 Object singleton = singletonFactory.getSingleton(className);
                 if (!ObjectUtils.isEmpty(singleton)) {
-                    return singleton;
+                    return;
                 }
                 Constructor<?> constructor = clazz.getConstructor();
-                object = constructor.newInstance();
+                Object object = constructor.newInstance();
                 System.out.println(className);
                 singletonFactory.setSingleton(className, object);
             }
         } catch (Exception exception) {
             exception.printStackTrace();
         }
-        return object;
     }
 
-    public void autoInjectField(List<Class<?>> classList) {
-        for (Class<?> clazz : classList) {
-            try {
-                Component component = clazz.getAnnotation(Component.class);
-                MinecraftPluginMain componentMain = clazz.getAnnotation(MinecraftPluginMain.class);
-                if (!ObjectUtils.isEmpty(component) || !ObjectUtils.isEmpty(componentMain)) {
-                    Object object = singletonFactory.getSingleton(clazz.getName());
-                    Field[] declaredFields = clazz.getDeclaredFields();
-                    for (Field declaredField : declaredFields) {
-                        AutoInject annotation = declaredField.getAnnotation(AutoInject.class);
-                        if (!ObjectUtils.isEmpty(annotation)) {
-                            declaredField.setAccessible(true);
-                            Class<?> type = declaredField.getType();
-                            String className = singletonFactory.instanceofImplement(type);
-                            Object instance = singletonFactory.getSingleton(className);
-                            declaredField.set(object, instance);
-                        }
+    private void autoInjectField(Class<?> clazz) {
+        try {
+            MinecraftPluginCommand componentCommand = clazz.getAnnotation(MinecraftPluginCommand.class);
+            MinecraftPluginListener componentListener = clazz.getAnnotation(MinecraftPluginListener.class);
+            MinecraftPluginComponent component = clazz.getAnnotation(MinecraftPluginComponent.class);
+            MinecraftPluginMain componentMain = clazz.getAnnotation(MinecraftPluginMain.class);
+            if (!ObjectUtils.isEmpty(component) || !ObjectUtils.isEmpty(componentMain)
+                    || !ObjectUtils.isEmpty(componentCommand) || !ObjectUtils.isEmpty(componentListener)) {
+                Object object = singletonFactory.getSingleton(clazz.getName());
+                Field[] declaredFields = clazz.getDeclaredFields();
+                for (Field declaredField : declaredFields) {
+                    MinecraftPluginAutoInject annotation = declaredField.getAnnotation(MinecraftPluginAutoInject.class);
+                    if (!ObjectUtils.isEmpty(annotation)) {
+                        declaredField.setAccessible(true);
+                        Class<?> type = declaredField.getType();
+                        String className = singletonFactory.instanceofImplement(type);
+                        Object instance = singletonFactory.getSingleton(className);
+                        declaredField.set(object, instance);
                     }
                 }
-            } catch (Exception exception) {
-                exception.printStackTrace();
             }
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
+    }
+
+    public static SingletonFactory getSingletonFactory() {
+        return singletonFactory;
     }
 
     public static <T> T getBean(Class<T> clazz) {
         String clazzName = clazz.getName();
         Object singleton = singletonFactory.getSingleton(clazzName);
-        if(ObjectUtils.isEmpty(singleton)){
+        if (ObjectUtils.isEmpty(singleton)) {
             throw new ClassLoaderException("singleton is null");
         }
-        return (T)singleton;
+        return (T) singleton;
     }
 }
