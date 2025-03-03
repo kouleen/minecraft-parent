@@ -3,6 +3,7 @@ package io.github.kouleen.minecraft.plugin;
 import io.github.kouleen.minecraft.core.factory.MinecraftApplication;
 import io.github.kouleen.minecraft.core.lang.annotation.MinecraftPluginCommand;
 import io.github.kouleen.minecraft.core.lang.annotation.MinecraftPluginListener;
+import io.github.kouleen.minecraft.core.utils.CollectionUtils;
 import io.github.kouleen.minecraft.core.utils.ObjectUtils;
 import io.github.kouleen.minecraft.plugin.utils.RegisterUtils;
 import org.bukkit.command.TabExecutor;
@@ -10,7 +11,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhangqing
@@ -24,9 +27,9 @@ public final class MinecraftPluginRun {
         return minecraftPluginRun;
     }
 
-    public void register(Plugin plugin, String commandMainName){
+    public void register(Plugin plugin){
         List<String> packageList = MinecraftApplication.getPackageList(plugin.getClass());
-        List<Class<? extends TabExecutor>> commandClazz = new ArrayList<>();
+        Map<String,List<Class<? extends TabExecutor>>> commandClazzMap = new HashMap<>();
         List<Class<? extends Listener>> listenerClazz = new ArrayList<>();
         for (String packageName : packageList) {
             List<Class<?>> classList = MinecraftApplication.getClassList(packageName);
@@ -37,7 +40,13 @@ public final class MinecraftPluginRun {
                     if (!(bean instanceof TabExecutor)) {
                         throw new RuntimeException("MinecraftPluginCommand annotation class is not the implementation class of TabExecutor.");
                     }
+
                     TabExecutor tabExecutor = (TabExecutor) bean;
+                    String command = componentCommand.command();
+                    List<Class<? extends TabExecutor>> commandClazz = commandClazzMap.get(command);
+                    if(CollectionUtils.isEmpty(commandClazz)){
+                        commandClazz = new ArrayList<>();
+                    }
                     commandClazz.add(tabExecutor.getClass());
                 }
                 MinecraftPluginListener componentListener = clazz.getAnnotation(MinecraftPluginListener.class);
@@ -51,11 +60,14 @@ public final class MinecraftPluginRun {
                 }
             }
         }
-        Class<? extends TabExecutor>[] tabExecutor = new Class[commandClazz.size()];
-        Class<? extends TabExecutor>[] commandClazzArray = commandClazz.toArray(tabExecutor);
+        commandClazzMap.forEach((command,cmdClazzList) ->{
+            Class<? extends TabExecutor>[] tabExecutor = new Class[cmdClazzList.size()];
+            Class<? extends TabExecutor>[] commandClazzArray = cmdClazzList.toArray(tabExecutor);
+            RegisterUtils.registerTabExecutors(command, commandClazzArray);
+        });
         Class<? extends Listener>[] listener = new Class[listenerClazz.size()];
         Class<? extends Listener>[] listenerClazzArray = listenerClazz.toArray(listener);
-        RegisterUtils.registerTabExecutors(commandMainName, commandClazzArray);
+
         RegisterUtils.registerListeners(plugin, listenerClazzArray);
     }
 

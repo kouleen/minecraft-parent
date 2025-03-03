@@ -25,6 +25,13 @@ import java.util.jar.JarFile;
  */
 public class MinecraftApplication {
 
+    private final static String BANNER = "  __  __ _                            __ _      _____               \n" +
+            " |  \\/  (_)                          / _| |    / ____|              \n" +
+            " | \\  / |_ _ __   ___  ___ _ __ __ _| |_| |_  | |     ___  _ __ ___ \n" +
+            " | |\\/| | | '_ \\ / _ \\/ __| '__/ _` |  _| __| | |    / _ \\| '__/ _ \\\n" +
+            " | |  | | | | | |  __/ (__| | | (_| | | | |_  | |___| (_) | | |  __/\n" +
+            " |_|  |_|_|_| |_|\\___|\\___|_|  \\__,_|_|  \\__|  \\_____\\___/|_|  \\___|\n";
+
     private static Map<String,List<String>> packageMap = new HashMap<>();
 
     private static ClassLoader[] classLoader;
@@ -41,6 +48,7 @@ public class MinecraftApplication {
     }
 
     public MinecraftApplication runMain(Class<?> primarySources) {
+        System.out.println(BANNER);
         List<String> packageList = MinecraftApplication.getPackageList(primarySources);
         for (String packageName : packageList) {
             List<Class<?>> aClass = MinecraftApplication.getClassList(packageName);
@@ -202,7 +210,7 @@ public class MinecraftApplication {
                 }
                 Constructor<?> constructor = clazz.getConstructor();
                 Object object = constructor.newInstance();
-                System.out.println(className);
+                System.out.println("[Minecraft-Core]: componentInstance ::: " + className);
                 singletonFactory.setSingleton(className, object);
             }
         } catch (Exception exception) {

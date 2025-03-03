@@ -10,7 +10,7 @@
         <module>minecraft-core</module>
         <module>minecraft-plugin</module>
     </modules>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <description>Minecraft Development</description>
     <url>https://github.com/kouleen/minecraft-parent</url>
     <packaging>pom</packaging>

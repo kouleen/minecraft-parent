@@ -12,4 +12,9 @@ import java.lang.annotation.*;
 @MinecraftPluginComponent
 public @interface MinecraftPluginCommand {
 
+    /**
+     * 注册命令
+     * @return
+     */
+    String command();
 }
