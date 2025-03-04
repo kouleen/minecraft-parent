@@ -380,7 +380,7 @@ public final class IOUtils {
      * @throws IOException if an I/O error occurs
      * @since Commons IO 1.1
      */
-    public static List readLines(InputStream input) throws IOException {
+    public static List<String> readLines(InputStream input) throws IOException {
         InputStreamReader reader = new InputStreamReader(input);
         return readLines(reader);
     }
@@ -402,7 +402,7 @@ public final class IOUtils {
      * @throws IOException if an I/O error occurs
      * @since Commons IO 1.1
      */
-    public static List readLines(InputStream input, String encoding) throws IOException {
+    public static List<String> readLines(InputStream input, String encoding) throws IOException {
         if (encoding == null) {
             return readLines(input);
         } else {
@@ -424,9 +424,9 @@ public final class IOUtils {
      * @throws IOException if an I/O error occurs
      * @since Commons IO 1.1
      */
-    public static List readLines(Reader input) throws IOException {
+    public static List<String> readLines(Reader input) throws IOException {
         BufferedReader reader = new BufferedReader(input);
-        List list = new ArrayList();
+        List<String> list = new ArrayList<>();
         String line = reader.readLine();
         while (line != null) {
             list.add(line);

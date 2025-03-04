@@ -13,8 +13,7 @@ import java.lang.annotation.*;
 public @interface MinecraftPluginCommand {
 
     /**
-     * 注册命令
-     * @return
+     * @return 注册命令
      */
-    String command();
+    String[] value();
 }
