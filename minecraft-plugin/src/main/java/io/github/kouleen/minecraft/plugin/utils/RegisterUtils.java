@@ -27,7 +27,7 @@ public final class RegisterUtils {
                 Method getLoggerMethod = bukkitClazz.getMethod("getLogger");
                 Object loggerBean = getLoggerMethod.invoke(null);
                 Method severeMethod = loggerBean.getClass().getMethod("severe", String.class);
-                severeMethod.invoke(null, "RegisterUtils pluginCommand is null");
+                severeMethod.invoke(loggerBean, "RegisterUtils pluginCommand is null");
                 return;
             }
             Class<?> tabCompleterClazz = Class.forName("org.bukkit.command.TabCompleter");

@@ -12,6 +12,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -55,6 +56,15 @@ public class MinecraftApplication {
             for (Class<?> clazz : aClass) {
                 this.componentInstance(clazz);
             }
+        }
+        for (String packageName : packageList) {
+            List<Class<?>> aClass = MinecraftApplication.getClassList(packageName);
+            for (Class<?> clazz : aClass) {
+                this.autoBeanObjectField(clazz);
+            }
+        }
+        for (String packageName : packageList) {
+            List<Class<?>> aClass = MinecraftApplication.getClassList(packageName);
             for (Class<?> clazz : aClass) {
                 this.autoInjectField(clazz);
             }
@@ -64,11 +74,11 @@ public class MinecraftApplication {
 
     public static List<String> getPackageList(Class<?> primarySources){
         AssertUtils.notNull(primarySources, "PrimarySources must not be null");
-        MinecraftPluginMain annotation = primarySources.getAnnotation(MinecraftPluginMain.class);
         String clazzName = primarySources.getName();
         if(packageMap.containsKey(clazzName)){
             return packageMap.get(clazzName);
         }
+        MinecraftPluginMain annotation = primarySources.getAnnotation(MinecraftPluginMain.class);
         List<String> packageList = new ArrayList<>();
         String[] packages = annotation.packages();
         if (!ObjectUtils.isEmpty(packages)) {
@@ -214,6 +224,38 @@ public class MinecraftApplication {
                 singletonFactory.setSingleton(className, object);
             }
         } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void autoBeanObjectField(Class<?> clazz){
+        try {
+            MinecraftPluginCommand componentCommand = clazz.getAnnotation(MinecraftPluginCommand.class);
+            MinecraftPluginListener componentListener = clazz.getAnnotation(MinecraftPluginListener.class);
+            MinecraftPluginComponent component = clazz.getAnnotation(MinecraftPluginComponent.class);
+            MinecraftPluginMain componentMain = clazz.getAnnotation(MinecraftPluginMain.class);
+            if (!ObjectUtils.isEmpty(component) || !ObjectUtils.isEmpty(componentMain)
+                    || !ObjectUtils.isEmpty(componentCommand) || !ObjectUtils.isEmpty(componentListener)) {
+                Object singleton = singletonFactory.getSingleton(clazz.getName());
+                Method[] methods = clazz.getMethods();
+                for (Method method : methods) {
+                    MinecraftBeanObject minecraftBeanObject = method.getAnnotation(MinecraftBeanObject.class);
+                    if(!ObjectUtils.isEmpty(minecraftBeanObject)){
+                        Class<?>[] parameterTypes = method.getParameterTypes();
+                        Object[] objects = new Object[parameterTypes.length];
+                        for (int i = 0; i < parameterTypes.length; i++) {
+                            String parameterTypeName = parameterTypes[i].getName();
+                            Object parameterBean = singletonFactory.getSingleton(parameterTypeName);
+                            objects[i] = parameterBean;
+                        }
+                        Object invoke = method.invoke(singleton, objects);
+                        Class<?> returnType = method.getReturnType();
+                        System.out.println("[Minecraft-Core]: componentInstance ::: " + returnType.getName());
+                        singletonFactory.setSingleton(returnType.getName(),invoke);
+                    }
+                }
+            }
+        }catch (Exception exception){
             exception.printStackTrace();
         }
     }
