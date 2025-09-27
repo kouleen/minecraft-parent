@@ -9,7 +9,6 @@ import java.lang.reflect.Method;
  * @since 2025/2/10 19:29
  */
 public final class MinecraftPluginRun {
-
     /**
      * 建议在org.bukkit.plugin.Plugin#onLoad()内调用
      * @param plugin 插件示例
