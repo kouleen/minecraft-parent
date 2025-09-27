@@ -13,7 +13,6 @@ public final class RegisterUtils {
 
     /**
      * 注册cmd执行器、tab执行器
-     *
      * @param commandMainName 主命令
      * @param clazzArgs       cmd执行器、tab执行器实现类
      */
@@ -48,7 +47,6 @@ public final class RegisterUtils {
 
     /**
      * 注册监听器
-     *
      * @param plugin    插件实例
      * @param clazzArgs 监听器实现类
      */

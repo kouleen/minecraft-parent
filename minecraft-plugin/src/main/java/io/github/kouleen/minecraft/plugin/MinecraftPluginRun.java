@@ -11,11 +11,11 @@ import java.lang.reflect.Method;
 public final class MinecraftPluginRun {
     /**
      * 建议在org.bukkit.plugin.Plugin#onLoad()内调用
-     * @param plugin 插件示例
+     * @param plugin      插件示例
      * @param classLoader 类加载器
      */
-    public static <T> void start(T plugin, ClassLoader... classLoader){
-        MinecraftApplication.run(plugin,classLoader);
+    public static <T> void start(T plugin, ClassLoader... classLoader) {
+        MinecraftApplication.run(plugin, classLoader);
         Class<?> pluginClazz = plugin.getClass();
         try {
             Class<?> pluginClass = Class.forName("org.bukkit.plugin.Plugin");
@@ -26,8 +26,8 @@ public final class MinecraftPluginRun {
             Object pluginManagerBean = pluginManagerMethod.invoke(server);
             Class<?> pluginManagerClazz = pluginManagerBean.getClass();
             Method enablePluginMethod = pluginManagerClazz.getMethod("enablePlugin", pluginClass);
-            enablePluginMethod.invoke(pluginManagerBean,plugin);
-        }catch (Exception exception){
+            enablePluginMethod.invoke(pluginManagerBean, plugin);
+        } catch (Exception exception) {
             exception.printStackTrace();
         }
         MinecraftPluginRegister.register(plugin);
@@ -36,8 +36,8 @@ public final class MinecraftPluginRun {
     /**
      * 通过类型注入Bean
      * @param clazz 类型
+     * @param <T>   实例类型
      * @return 实例
-     * @param <T> 实例类型
      */
     public static <T> T getBean(Class<T> clazz) {
         return MinecraftApplication.getBean(clazz);
