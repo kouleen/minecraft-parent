@@ -7,6 +7,7 @@ import java.lang.annotation.*;
  * @since 2025/2/10 19:12
  */
 @Documented
+@Inherited
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MinecraftPluginMain {

@@ -6,11 +6,12 @@
     <parent>
         <groupId>io.github.kouleen.minecraft</groupId>
         <artifactId>minecraft-parent</artifactId>
-        <version>1.0.7</version>
+        <version>1.0.8</version>
     </parent>
 
     <groupId>io.github.kouleen.minecraft.core</groupId>
     <artifactId>minecraft-core</artifactId>
+    <name>minecraftcore</name>
 
     <dependencies>
         <dependency>

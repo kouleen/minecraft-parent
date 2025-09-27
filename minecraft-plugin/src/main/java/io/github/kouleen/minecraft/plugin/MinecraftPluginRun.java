@@ -1,7 +1,8 @@
 package io.github.kouleen.minecraft.plugin;
 
 import io.github.kouleen.minecraft.core.factory.MinecraftApplication;
-import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Method;
 
 /**
  * @author zhangqing
@@ -14,9 +15,22 @@ public final class MinecraftPluginRun {
      * @param plugin 插件示例
      * @param classLoader 类加载器
      */
-    public static void start(Plugin plugin, ClassLoader... classLoader) {
-        MinecraftApplication.run(plugin, classLoader);
-        plugin.getServer().getPluginManager().enablePlugin(plugin);
+    public static <T> void start(T plugin, ClassLoader... classLoader){
+        MinecraftApplication.run(plugin,classLoader);
+        Class<?> pluginClazz = plugin.getClass();
+        try {
+            Class<?> pluginClass = Class.forName("org.bukkit.plugin.Plugin");
+            Method serverMethod = pluginClazz.getMethod("getServer");
+            Object server = serverMethod.invoke(plugin);
+            Class<?> serverClazz = server.getClass();
+            Method pluginManagerMethod = serverClazz.getMethod("getPluginManager");
+            Object pluginManagerBean = pluginManagerMethod.invoke(server);
+            Class<?> pluginManagerClazz = pluginManagerBean.getClass();
+            Method enablePluginMethod = pluginManagerClazz.getMethod("enablePlugin", pluginClass);
+            enablePluginMethod.invoke(pluginManagerBean,plugin);
+        }catch (Exception exception){
+            exception.printStackTrace();
+        }
         MinecraftPluginRegister.register(plugin);
     }
 
